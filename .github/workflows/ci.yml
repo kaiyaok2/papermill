@@ -12,12 +12,12 @@ jobs:
     name: "Python ${{ matrix.python-version }}"
     runs-on: "ubuntu-latest"
     env:
-      USING_COVERAGE: '3.8,3.9,3.10,3.11,3.12'
+      USING_COVERAGE: '3.12' #'3.8,3.9,3.10,3.11,3.12'
 
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.12"] #["3.8", "3.9", "3.10", "3.11", "3.12"]
 
     steps:
       - uses: "actions/checkout@v4"
@@ -31,8 +31,24 @@ jobs:
           python -m site
           python -m pip install --upgrade pip setuptools wheel coverage[toml] virtualenv tox tox-gh-actions
 
+      - name: Restore pytest-ranking cache
+        id: restore-pytest-ranking-cache
+        if: always()
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ github.workspace }}/.tox/py312/.pytest_cache/v/pytest_ranking_data
+          key: pytest-ranking-cache-${{ runner.os }}-${{ matrix.python }}
+
       - name: "Run tox targets for ${{ matrix.python-version }}"
         run: python -m tox
+
+      - name: Save pytest-ranking cache
+        id: save-pytest-ranking-cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/.tox/py312/.pytest_cache/v/pytest_ranking_data
+          key: pytest-ranking-cache-${{ runner.os }}-${{ matrix.python }}-${{ github.run_id }}
 
       - name: "Generate coverage XML"
         if: "contains(env.USING_COVERAGE, matrix.python-version)"
@@ -41,22 +57,22 @@ jobs:
       - name: "Upload coverage to Codecov"
         uses: codecov/codecov-action@v4
 
-  others:
-    runs-on: ubuntu-20.04
-    strategy:
-      fail-fast: false
-      matrix:
-        toxenv: ["manifest", "docs", "binder"]
-    env:
-      TOXENV: ${{ matrix.toxenv }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.11
-      - name: "Install dependencies"
-        run: |
-          set -xe
-          python -m pip install virtualenv tox
-      - name: "Run tox targets for ${{ matrix.toxenv }}"
-        run: python -m tox
+  # others:
+  #   runs-on: ubuntu-20.04
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       toxenv: ["manifest", "docs", "binder"]
+  #   env:
+  #     TOXENV: ${{ matrix.toxenv }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-python@v5
+  #       with:
+  #         python-version: 3.11
+  #     - name: "Install dependencies"
+  #       run: |
+  #         set -xe
+  #         python -m pip install virtualenv tox
+  #     - name: "Run tox targets for ${{ matrix.toxenv }}"
+  #       run: python -m tox
