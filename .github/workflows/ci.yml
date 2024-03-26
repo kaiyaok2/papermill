@@ -50,12 +50,12 @@ jobs:
           path: ${{ github.workspace }}/.tox/py312/.pytest_cache/v/pytest_ranking_data
           key: pytest-ranking-cache-${{ runner.os }}-${{ matrix.python }}-${{ github.run_id }}
 
-      - name: "Generate coverage XML"
-        if: "contains(env.USING_COVERAGE, matrix.python-version)"
-        run: python -m coverage xml
+      # - name: "Generate coverage XML"
+      #   if: "contains(env.USING_COVERAGE, matrix.python-version)"
+      #   run: python -m coverage xml
 
-      - name: "Upload coverage to Codecov"
-        uses: codecov/codecov-action@v4
+      # - name: "Upload coverage to Codecov"
+      #   uses: codecov/codecov-action@v4
 
   # others:
   #   runs-on: ubuntu-20.04
